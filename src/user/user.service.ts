@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { User, UserWithoutPassword } from './user.interfaces';
 
 @Injectable()
@@ -7,8 +7,17 @@ export class UserService {
 
   getUsers(): UserWithoutPassword[] {
     return this.users.map((user) => {
-      const { password, ...rest } = user;
-      return rest;
+      const safeUser = { ...user };
+      delete safeUser.password;
+      return safeUser;
     });
+  }
+
+  getUserById(id: string): UserWithoutPassword {
+    const user = this.users.find((user) => user.id === id);
+    if (!user) throw new NotFoundException();
+    const safeUser = { ...user };
+    delete safeUser.password;
+    return safeUser;
   }
 }
