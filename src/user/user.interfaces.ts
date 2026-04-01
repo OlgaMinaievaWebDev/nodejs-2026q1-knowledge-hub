@@ -8,3 +8,9 @@ export interface User {
 }
 
 export type UserWithoutPassword = Omit<User, 'password'>;
+
+export interface CreateUserDto {
+  login: string;
+  password: string;
+  role?: 'admin' | 'editor' | 'viewer'; // defaults to 'viewer'
+}
