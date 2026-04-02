@@ -14,3 +14,8 @@ export interface CreateUserDto {
   password: string;
   role?: 'admin' | 'editor' | 'viewer'; // defaults to 'viewer'
 }
+
+export interface UpdatePasswordDto {
+  oldPassword: string;
+  newPassword: string;
+}

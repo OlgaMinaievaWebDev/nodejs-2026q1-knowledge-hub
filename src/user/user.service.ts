@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { User, UserWithoutPassword } from './user.interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class UserService {
@@ -37,4 +38,6 @@ export class UserService {
     this.users.push(newUser);
     return safeUser;
   }
+
+  updateUserPassword(id, dto: UpdatePasswordDto) {}
 }
