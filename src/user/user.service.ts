@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { User, UserWithoutPassword } from './user.interfaces';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { User, UserRole, UserWithoutPassword } from './user.interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 
@@ -24,7 +28,7 @@ export class UserService {
   }
 
   createUser(dto: CreateUserDto): UserWithoutPassword {
-    const role = dto.role ?? 'viewer';
+    const role = dto.role ?? UserRole.VIEWER;
     const newUser: User = {
       id: crypto.randomUUID(),
       login: dto.login,
@@ -39,5 +43,15 @@ export class UserService {
     return safeUser;
   }
 
-  updateUserPassword(id, dto: UpdatePasswordDto) {}
+  updateUserPassword(id: string, dto: UpdatePasswordDto): UserWithoutPassword {
+    const existingUser = this.users.find((user) => user.id === id);
+    if (!existingUser) throw new NotFoundException();
+    if (dto.oldPassword !== existingUser.password)
+      throw new ForbiddenException();
+    existingUser.password = dto.newPassword;
+    existingUser.updatedAt = Date.now();
+    const safeUser = { ...existingUser };
+    delete safeUser.password;
+    return safeUser;
+  }
 }

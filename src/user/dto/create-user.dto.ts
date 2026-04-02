@@ -1,4 +1,5 @@
-import { IsString, IsNotEmpty, IsOptional, IsIn } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { UserRole } from '../user.interfaces';
 
 export class CreateUserDto {
   @IsString()
@@ -9,6 +10,6 @@ export class CreateUserDto {
   password: string;
   @IsOptional()
   @IsString()
-  @IsIn(['admin', 'editor', 'viewer'])
-  role?: 'admin' | 'editor' | 'viewer';
+  @IsEnum(UserRole)
+  role?: UserRole;
 }

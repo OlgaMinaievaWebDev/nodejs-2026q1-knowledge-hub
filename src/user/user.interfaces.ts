@@ -19,3 +19,9 @@ export interface UpdatePasswordDto {
   oldPassword: string;
   newPassword: string;
 }
+
+export enum UserRole {
+  ADMIN = 'admin',
+  EDITOR = 'editor',
+  VIEWER = 'viewer',
+}
