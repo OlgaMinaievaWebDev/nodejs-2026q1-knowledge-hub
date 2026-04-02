@@ -54,4 +54,10 @@ export class UserService {
     delete safeUser.password;
     return safeUser;
   }
+
+  deleteUser(id: string): void {
+    const existingUser = this.users.find((user) => user.id === id);
+    if (!existingUser) throw new NotFoundException();
+    this.users = this.users.filter((user) => user.id !== id);
+  }
 }
