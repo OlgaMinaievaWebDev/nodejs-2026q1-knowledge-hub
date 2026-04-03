@@ -6,11 +6,13 @@ import {
   Post,
   Body,
   Query,
+  Put,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { Article } from './article.interfaces';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticleQueryDto } from './dto/get-articles-query.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 @Controller('article')
 export class ArticleController {
@@ -29,5 +31,13 @@ export class ArticleController {
   @Post()
   createArticle(@Body() dto: CreateArticleDto): Article {
     return this.articleService.createArticle(dto);
+  }
+
+  @Put(':id')
+  updateArticle(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateArticleDto,
+  ): Article {
+    return this.articleService.updateArticle(id, dto);
   }
 }

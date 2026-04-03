@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Article, ArticleStatus } from './article.interfaces';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticleQueryDto } from './dto/get-articles-query.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
 
 @Injectable()
 export class ArticleService {
@@ -41,5 +42,19 @@ export class ArticleService {
     };
     this.articles.push(newArticle);
     return newArticle;
+  }
+
+  updateArticle(id: string, dto: UpdateArticleDto): Article {
+    const existingArticle = this.articles.find((article) => article.id === id);
+    if (!existingArticle) throw new NotFoundException();
+    if (dto.title !== undefined) existingArticle.title = dto.title;
+    if (dto.content !== undefined) existingArticle.content = dto.content;
+    if (dto.status !== undefined) existingArticle.status = dto.status;
+    if (dto.authorId !== undefined) existingArticle.authorId = dto.authorId;
+    if (dto.categoryId !== undefined)
+      existingArticle.categoryId = dto.categoryId;
+    if (dto.tags !== undefined) existingArticle.tags = dto.tags;
+    existingArticle.updatedAt = Date.now();
+    return existingArticle;
   }
 }
