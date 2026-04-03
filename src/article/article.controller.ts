@@ -5,18 +5,20 @@ import {
   ParseUUIDPipe,
   Post,
   Body,
+  Query,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { Article } from './article.interfaces';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { GetArticleQueryDto } from './dto/get-articles-query.dto';
 
 @Controller('article')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
   @Get()
-  getArticles(): Article[] {
-    return this.articleService.getArticles();
+  getArticles(@Query() query: GetArticleQueryDto): Article[] {
+    return this.articleService.getArticles(query);
   }
 
   @Get(':id')

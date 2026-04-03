@@ -1,13 +1,23 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Article, ArticleStatus } from './article.interfaces';
 import { CreateArticleDto } from './dto/create-article.dto';
+import { GetArticleQueryDto } from './dto/get-articles-query.dto';
 
 @Injectable()
 export class ArticleService {
   articles: Article[] = [];
 
-  getArticles(): Article[] {
-    return this.articles;
+  getArticles(query: GetArticleQueryDto): Article[] {
+    const { status, categoryId, tag } = query;
+    return this.articles.filter((article) => {
+      const matchStatus = status ? article.status === status : true;
+      const matchCategoryId = categoryId
+        ? article.categoryId === categoryId
+        : true;
+
+      const matchTag = tag ? article.tags.includes(tag) : true;
+      return matchStatus && matchCategoryId && matchTag;
+    });
   }
 
   getArticleById(id: string): Article {
