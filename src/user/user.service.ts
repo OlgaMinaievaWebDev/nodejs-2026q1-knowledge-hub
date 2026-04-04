@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { User, UserRole, UserWithoutPassword } from './user.interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
@@ -36,7 +37,7 @@ export class UserService {
   createUser(dto: CreateUserDto): UserWithoutPassword {
     const role = dto.role ?? UserRole.VIEWER;
     const newUser: User = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       login: dto.login,
       password: dto.password,
       role: role,

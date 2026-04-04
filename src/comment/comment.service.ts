@@ -5,6 +5,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { Comment } from './comment.interfaces';
 import { GetCommentsQueryDto } from './dto/get-comment-query.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -38,7 +39,7 @@ export class CommentService {
     }
 
     const newComment: Comment = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       content: dto.content,
       articleId: dto.articleId,
       authorId: dto.authorId ?? null,

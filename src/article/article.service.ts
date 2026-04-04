@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { Article, ArticleStatus } from './article.interfaces';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticleQueryDto } from './dto/get-articles-query.dto';
@@ -40,7 +41,7 @@ export class ArticleService {
   createArticle(dto: CreateArticleDto): Article {
     const status = dto.status ?? ArticleStatus.DRAFT;
     const newArticle: Article = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       title: dto.title,
       content: dto.content,
       status: status,

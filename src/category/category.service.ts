@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import { Category } from './category.interfaces';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -23,7 +24,7 @@ export class CategoryService {
 
   createCategory(dto: CreateCategoryDto): Category {
     const newCategory: Category = {
-      id: crypto.randomUUID(),
+      id: randomUUID(),
       name: dto.name,
       description: dto.description,
     };
