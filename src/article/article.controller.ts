@@ -1,0 +1,52 @@
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Body,
+  Query,
+  Put,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import { ArticleService } from './article.service';
+import { Article } from './article.interfaces';
+import { CreateArticleDto } from './dto/create-article.dto';
+import { GetArticleQueryDto } from './dto/get-articles-query.dto';
+import { UpdateArticleDto } from './dto/update-article.dto';
+
+@Controller('article')
+export class ArticleController {
+  constructor(private readonly articleService: ArticleService) {}
+
+  @Get()
+  getArticles(@Query() query: GetArticleQueryDto): Article[] {
+    return this.articleService.getArticles(query);
+  }
+
+  @Get(':id')
+  getArticleById(@Param('id', ParseUUIDPipe) id: string): Article {
+    return this.articleService.getArticleById(id);
+  }
+
+  @Post()
+  createArticle(@Body() dto: CreateArticleDto): Article {
+    return this.articleService.createArticle(dto);
+  }
+
+  @Put(':id')
+  updateArticle(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateArticleDto,
+  ): Article {
+    return this.articleService.updateArticle(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteArticle(@Param('id', ParseUUIDPipe) id: string): void {
+    this.articleService.deleteArticle(id);
+  }
+}
