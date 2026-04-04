@@ -69,4 +69,8 @@ export class ArticleService {
       if (article.categoryId === id) article.categoryId = null;
     });
   }
+
+  existsById(id: string): boolean {
+    return this.articles.some((article) => article.id === id);
+  }
 }
