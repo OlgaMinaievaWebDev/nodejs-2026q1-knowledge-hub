@@ -2,9 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Category } from './category.interfaces';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { ArticleService } from 'src/article/article.service';
 
 @Injectable()
 export class CategoryService {
+  constructor(private readonly articleService: ArticleService) {}
   categories: Category[] = [];
 
   getCategories(): Category[] {
@@ -39,11 +41,12 @@ export class CategoryService {
     return existingCategory;
   }
 
-  deleteCategory(id: string) {
+  deleteCategory(id: string): void {
     const existingCategory = this.categories.find(
       (category) => category.id === id,
     );
     if (!existingCategory) throw new NotFoundException();
+    this.articleService.clearCategoryById(id);
     this.categories = this.categories.filter((category) => category.id !== id);
   }
 }

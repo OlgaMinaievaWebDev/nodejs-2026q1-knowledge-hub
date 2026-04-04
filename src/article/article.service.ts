@@ -57,4 +57,16 @@ export class ArticleService {
     existingArticle.updatedAt = Date.now();
     return existingArticle;
   }
+
+  deleteArticle(id: string): void {
+    const existingArticle = this.articles.find((article) => article.id === id);
+    if (!existingArticle) throw new NotFoundException();
+    this.articles = this.articles.filter((article) => article.id !== id);
+  }
+
+  clearCategoryById(id: string): void {
+    this.articles.forEach((article) => {
+      if (article.categoryId === id) article.categoryId = null;
+    });
+  }
 }

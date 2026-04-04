@@ -7,6 +7,9 @@ import {
   Body,
   Query,
   Put,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ArticleService } from './article.service';
 import { Article } from './article.interfaces';
@@ -39,5 +42,11 @@ export class ArticleController {
     @Body() dto: UpdateArticleDto,
   ): Article {
     return this.articleService.updateArticle(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteArticle(@Param('id', ParseUUIDPipe) id: string): void {
+    this.articleService.deleteArticle(id);
   }
 }
