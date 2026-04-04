@@ -1,11 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Article, ArticleStatus } from './article.interfaces';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { GetArticleQueryDto } from './dto/get-articles-query.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { CommentService } from 'src/comment/comment.service';
 
 @Injectable()
 export class ArticleService {
+  constructor(
+    @Inject(forwardRef(() => CommentService))
+    private readonly commentService: CommentService,
+  ) {}
   articles: Article[] = [];
 
   getArticles(query: GetArticleQueryDto): Article[] {
@@ -61,12 +71,21 @@ export class ArticleService {
   deleteArticle(id: string): void {
     const existingArticle = this.articles.find((article) => article.id === id);
     if (!existingArticle) throw new NotFoundException();
+
+    this.commentService.deleteCommentsByArticleId(id);
+
     this.articles = this.articles.filter((article) => article.id !== id);
   }
 
   clearCategoryById(id: string): void {
     this.articles.forEach((article) => {
       if (article.categoryId === id) article.categoryId = null;
+    });
+  }
+
+  clearAuthorIdByUserId(userId: string): void {
+    this.articles.forEach((article) => {
+      if (article.authorId === userId) article.authorId = null;
     });
   }
 

@@ -6,6 +6,9 @@ import {
   ParseUUIDPipe,
   Post,
   Body,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { GetCommentsQueryDto } from './dto/get-comment-query.dto';
@@ -29,5 +32,11 @@ export class CommentController {
   @Post()
   createComment(@Body() dto: CreateCommentDto) {
     return this.commentService.createComment(dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  deleteComment(@Param('id', ParseUUIDPipe) id: string): void {
+    this.commentService.deleteComment(id);
   }
 }

@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -10,7 +12,10 @@ import { ArticleService } from 'src/article/article.service';
 
 @Injectable()
 export class CommentService {
-  constructor(private readonly articleService: ArticleService) {}
+  constructor(
+    @Inject(forwardRef(() => ArticleService))
+    private readonly articleService: ArticleService,
+  ) {}
   comments: Comment[] = [];
 
   getComments(query: GetCommentsQueryDto): Comment[] {
@@ -42,5 +47,23 @@ export class CommentService {
 
     this.comments.push(newComment);
     return newComment;
+  }
+
+  deleteComment(id: string) {
+    const existingComment = this.comments.find((comment) => comment.id === id);
+    if (!existingComment) throw new NotFoundException();
+    this.comments = this.comments.filter((comment) => comment.id !== id);
+  }
+
+  deleteCommentsByArticleId(articleId: string): void {
+    this.comments = this.comments.filter(
+      (comment) => comment.articleId !== articleId,
+    );
+  }
+
+  deleteCommentsByAuthorId(authorId: string): void {
+    this.comments = this.comments.filter(
+      (comment) => comment.authorId !== authorId,
+    );
   }
 }
