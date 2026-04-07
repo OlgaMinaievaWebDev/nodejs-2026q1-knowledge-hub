@@ -1,0 +1,12 @@
+node_modules
+.git
+.idea
+.vscode
+
+logs
+*.log
+
+.env
+.env.*
+
+build/
