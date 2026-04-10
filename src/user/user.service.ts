@@ -9,21 +9,27 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ArticleService } from 'src/article/article.service';
 import { CommentService } from 'src/comment/comment.service';
+import { PrismaService } from 'prisma/prisma.service';
 
 @Injectable()
 export class UserService {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly articleService: ArticleService,
     private readonly commentService: CommentService,
   ) {}
-  users: User[] = [];
+  users: User[];
 
-  getUsers(): UserWithoutPassword[] {
-    return this.users.map((user) => {
-      const safeUser = { ...user };
-      delete safeUser.password;
-      return safeUser;
-    });
+  async getUsers(): Promise<UserWithoutPassword[]> {
+    const users = await this.prisma.user.findMany();
+
+    return users.map((user) => ({
+      id: user.id,
+      login: user.login,
+      role: user.role.toLowerCase() as UserWithoutPassword['role'],
+      createdAt: user.createdAt.getTime(),
+      updatedAt: user.updatedAt.getTime(),
+    }));
   }
 
   getUserById(id: string): UserWithoutPassword {
