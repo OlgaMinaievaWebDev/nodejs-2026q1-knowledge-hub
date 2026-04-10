@@ -21,30 +21,32 @@ export class UserController {
 
   @Get()
   async getUsers(): Promise<UserWithoutPassword[]> {
-    return await this.userService.getUsers();
+    return this.userService.getUsers();
   }
 
   @Get(':id')
-  getUserById(@Param('id', ParseUUIDPipe) id: string): UserWithoutPassword {
+  async getUserById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<UserWithoutPassword> {
     return this.userService.getUserById(id);
   }
 
   @Post()
-  createUser(@Body() dto: CreateUserDto): UserWithoutPassword {
+  async createUser(@Body() dto: CreateUserDto): Promise<UserWithoutPassword> {
     return this.userService.createUser(dto);
   }
 
   @Put(':id')
-  updateUserPassword(
+  async updateUserPassword(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdatePasswordDto,
-  ): UserWithoutPassword {
+  ): Promise<UserWithoutPassword> {
     return this.userService.updateUserPassword(id, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteUser(@Param('id', ParseUUIDPipe) id: string) {
-    this.userService.deleteUser(id);
+  async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.userService.deleteUser(id);
   }
 }
