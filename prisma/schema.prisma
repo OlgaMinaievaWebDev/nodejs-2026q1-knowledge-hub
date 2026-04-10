@@ -15,7 +15,7 @@ model User {
   id        String    @id @default(uuid())
   login     String    @unique
   password  String
-  role      Role      @default(VIEWER)
+  role      UserRole  @default(VIEWER)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   articles  Article[]
@@ -41,7 +41,7 @@ model Article {
 
 model Category {
   id          String    @id @default(uuid())
-  name        String
+  name        String    @unique
   description String
   articles    Article[]
 }
@@ -63,7 +63,7 @@ model Tag {
   articles Article[]
 }
 
-enum Role {
+enum UserRole {
   ADMIN
   EDITOR
   VIEWER
