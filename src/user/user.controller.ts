@@ -20,8 +20,8 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  getUsers(): UserWithoutPassword[] {
-    return this.userService.getUsers();
+  async getUsers(): Promise<UserWithoutPassword[]> {
+    return await this.userService.getUsers();
   }
 
   @Get(':id')
