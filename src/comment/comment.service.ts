@@ -1,70 +1,94 @@
 import {
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Comment } from './comment.interfaces';
 import { GetCommentsQueryDto } from './dto/get-comment-query.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
-import { ArticleService } from 'src/article/article.service';
 
 @Injectable()
 export class CommentService {
-  constructor(
-    @Inject(forwardRef(() => ArticleService))
-    private readonly articleService: ArticleService,
-  ) {}
-  comments: Comment[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  getComments(query: GetCommentsQueryDto): Comment[] {
-    return this.comments.filter(
-      (comment) => comment.articleId === query.articleId,
-    );
+  async getComments(query: GetCommentsQueryDto): Promise<Comment[]> {
+    const comments = await this.prisma.comment.findMany({
+      where: { articleId: query.articleId },
+    });
+
+    return comments.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      articleId: comment.articleId,
+      authorId: comment.authorId,
+      createdAt: comment.createdAt.getTime(),
+    }));
   }
 
-  getCommentById(id: string): Comment {
-    const existingComment = this.comments.find((comment) => comment.id === id);
-    if (!existingComment) throw new NotFoundException();
-    return existingComment;
+  async getCommentById(id: string): Promise<Comment> {
+    const comment = await this.prisma.comment.findUnique({
+      where: { id },
+    });
+
+    if (!comment) {
+      throw new NotFoundException();
+    }
+
+    return {
+      id: comment.id,
+      content: comment.content,
+      articleId: comment.articleId,
+      authorId: comment.authorId,
+      createdAt: comment.createdAt.getTime(),
+    };
   }
 
-  createComment(dto: CreateCommentDto): Comment {
-    const exists = this.articleService.existsById(dto.articleId);
+  async createComment(dto: CreateCommentDto): Promise<Comment> {
+    const article = await this.prisma.article.findUnique({
+      where: { id: dto.articleId },
+      select: { id: true },
+    });
 
-    if (!exists) {
+    if (!article) {
       throw new UnprocessableEntityException();
     }
 
-    const newComment: Comment = {
-      id: randomUUID(),
-      content: dto.content,
-      articleId: dto.articleId,
-      authorId: dto.authorId ?? null,
-      createdAt: Date.now(),
+    const data =
+      dto.authorId === null || dto.authorId === undefined
+        ? {
+            content: dto.content,
+            articleId: dto.articleId,
+          }
+        : {
+            content: dto.content,
+            articleId: dto.articleId,
+            authorId: dto.authorId,
+          };
+
+    const comment = await this.prisma.comment.create({ data });
+
+    return {
+      id: comment.id,
+      content: comment.content,
+      articleId: comment.articleId,
+      authorId: comment.authorId,
+      createdAt: comment.createdAt.getTime(),
     };
-
-    this.comments.push(newComment);
-    return newComment;
   }
 
-  deleteComment(id: string) {
-    const existingComment = this.comments.find((comment) => comment.id === id);
-    if (!existingComment) throw new NotFoundException();
-    this.comments = this.comments.filter((comment) => comment.id !== id);
-  }
+  async deleteComment(id: string): Promise<void> {
+    const comment = await this.prisma.comment.findUnique({
+      where: { id },
+      select: { id: true },
+    });
 
-  deleteCommentsByArticleId(articleId: string): void {
-    this.comments = this.comments.filter(
-      (comment) => comment.articleId !== articleId,
-    );
-  }
+    if (!comment) {
+      throw new NotFoundException();
+    }
 
-  deleteCommentsByAuthorId(authorId: string): void {
-    this.comments = this.comments.filter(
-      (comment) => comment.authorId !== authorId,
-    );
+    await this.prisma.comment.delete({
+      where: { id },
+    });
   }
 }

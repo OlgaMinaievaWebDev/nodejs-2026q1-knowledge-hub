@@ -4,9 +4,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-  console.log('DB URL:', process.env.DATABASE_URL);
+  
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+    }),
+  );
   const config = new DocumentBuilder()
     .setTitle('Knowledge Hub API')
     .setDescription('API for articles, users, comments')

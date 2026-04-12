@@ -1,53 +1,114 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
 import { Category } from './category.interfaces';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { ArticleService } from 'src/article/article.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CategoryService {
-  constructor(private readonly articleService: ArticleService) {}
-  categories: Category[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
-  getCategories(): Category[] {
-    return this.categories;
+  async getCategories(): Promise<Category[]> {
+    const categories = await this.prisma.category.findMany();
+
+    return categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+    }));
   }
 
-  getCategoryById(id: string): Category {
-    const existingCategory = this.categories.find(
-      (category) => category.id === id,
-    );
-    if (!existingCategory) throw new NotFoundException();
-    return existingCategory;
-  }
+  async getCategoryById(id: string): Promise<Category> {
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+    });
 
-  createCategory(dto: CreateCategoryDto): Category {
-    const newCategory: Category = {
-      id: randomUUID(),
-      name: dto.name,
-      description: dto.description,
+    if (!category) {
+      throw new NotFoundException();
+    }
+
+    return {
+      id: category.id,
+      name: category.name,
+      description: category.description,
     };
-    this.categories.push(newCategory);
-    return newCategory;
   }
 
-  updateCategory(id: string, dto: UpdateCategoryDto): Category {
-    const existingCategory = this.categories.find(
-      (category) => category.id === id,
-    );
-    if (!existingCategory) throw new NotFoundException();
-    existingCategory.name = dto.name;
-    existingCategory.description = dto.description;
-    return existingCategory;
+  async createCategory(dto: CreateCategoryDto): Promise<Category> {
+    try {
+      const category = await this.prisma.category.create({
+        data: {
+          name: dto.name,
+          description: dto.description,
+        },
+      });
+
+      return {
+        id: category.id,
+        name: category.name,
+        description: category.description,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException('Category name must be unique');
+      }
+
+      throw error;
+    }
   }
 
-  deleteCategory(id: string): void {
-    const existingCategory = this.categories.find(
-      (category) => category.id === id,
-    );
-    if (!existingCategory) throw new NotFoundException();
-    this.articleService.clearCategoryById(id);
-    this.categories = this.categories.filter((category) => category.id !== id);
+  async updateCategory(id: string, dto: UpdateCategoryDto): Promise<Category> {
+    const existing = await this.prisma.category.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException();
+    }
+
+    try {
+      const category = await this.prisma.category.update({
+        where: { id },
+        data: {
+          name: dto.name,
+          description: dto.description,
+        },
+      });
+
+      return {
+        id: category.id,
+        name: category.name,
+        description: category.description,
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException('Category name must be unique');
+      }
+
+      throw error;
+    }
+  }
+  async deleteCategory(id: string): Promise<void> {
+    const existing = await this.prisma.category.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      throw new NotFoundException();
+    }
+
+    await this.prisma.category.delete({
+      where: { id },
+    });
   }
 }

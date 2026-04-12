@@ -1,18 +1,18 @@
 import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  ParseUUIDPipe,
-  Post,
   Body,
+  Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
-import { GetCommentsQueryDto } from './dto/get-comment-query.dto';
 import { Comment } from './comment.interfaces';
+import { GetCommentsQueryDto } from './dto/get-comment-query.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Controller('comment')
@@ -20,23 +20,25 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Get()
-  getComments(@Query() query: GetCommentsQueryDto): Comment[] {
+  async getComments(@Query() query: GetCommentsQueryDto): Promise<Comment[]> {
     return this.commentService.getComments(query);
   }
 
   @Get(':id')
-  getCommentById(@Param('id', ParseUUIDPipe) id: string): Comment {
+  async getCommentById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<Comment> {
     return this.commentService.getCommentById(id);
   }
 
   @Post()
-  createComment(@Body() dto: CreateCommentDto) {
+  async createComment(@Body() dto: CreateCommentDto): Promise<Comment> {
     return this.commentService.createComment(dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteComment(@Param('id', ParseUUIDPipe) id: string): void {
-    this.commentService.deleteComment(id);
+  async deleteComment(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.commentService.deleteComment(id);
   }
 }

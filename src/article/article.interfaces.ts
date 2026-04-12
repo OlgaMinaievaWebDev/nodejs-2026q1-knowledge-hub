@@ -1,13 +1,13 @@
 export interface Article {
-  id: string; // uuid v4
+  id: string;
   title: string;
   content: string;
-  status: 'draft' | 'published' | 'archived';
-  authorId: string | null; // refers to User
-  categoryId: string | null; // refers to Category
-  tags: string[]; // array of tag names
-  createdAt: number; // timestamp of creation
-  updatedAt: number; // timestamp of last update
+  status: ArticleStatus;
+  authorId: string | null;
+  categoryId: string | null;
+  tags: string[];
+  createdAt: number;
+  updatedAt: number;
 }
 
 export enum ArticleStatus {

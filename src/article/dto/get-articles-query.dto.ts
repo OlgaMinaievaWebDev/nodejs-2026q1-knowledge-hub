@@ -5,9 +5,11 @@ export class GetArticleQueryDto {
   @IsOptional()
   @IsEnum(ArticleStatus)
   status?: ArticleStatus;
+
   @IsOptional()
   @IsUUID()
   categoryId?: string;
+
   @IsString()
   @IsOptional()
   tag?: string;

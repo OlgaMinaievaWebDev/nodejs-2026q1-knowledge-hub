@@ -1,192 +1,157 @@
-import 'dotenv/config';
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { ArticleStatus, PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, ArticleStatus, UserRole } from '@prisma/client';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
-  const usersData = [
-    {
+  await prisma.comment.deleteMany();
+  await prisma.article.deleteMany();
+  await prisma.tag.deleteMany();
+  await prisma.category.deleteMany();
+  await prisma.user.deleteMany();
+
+  const admin = await prisma.user.create({
+    data: {
       login: 'admin',
-      password: '12345',
+      password: 'admin123',
       role: UserRole.ADMIN,
     },
-    {
-      login: 'editor',
-      password: '12345',
-      role: UserRole.EDITOR,
-    },
-  ];
-
-  const categoriesData = [
-    {
-      name: 'FrontEnd',
-      description: 'Articles about UI and client-side apps',
-    },
-    {
-      name: 'BackEnd',
-      description: 'Articles about server-side development',
-    },
-    {
-      name: 'DevOps',
-      description: 'Articles about deployment and infrastructure',
-    },
-  ];
-  const articlesData = [
-    {
-      title: 'Intro to Backend',
-      content: 'This is a beginner backend article',
-      status: ArticleStatus.DRAFT,
-      categoryName: 'BackEnd',
-    },
-    {
-      title: 'API Design Basics',
-      content: 'How to design clean APIs',
-      status: ArticleStatus.ARCHIVED,
-      categoryName: 'BackEnd',
-    },
-    {
-      title: 'Intro to Frontend',
-      content: 'This is beginner frontend article',
-      status: ArticleStatus.PUBLISHED,
-      categoryName: 'FrontEnd',
-    },
-    {
-      title: 'Typescript as a tool',
-      content: 'How to you Typescript to code efficient',
-      status: ArticleStatus.PUBLISHED,
-      categoryName: 'DevOps',
-    },
-    {
-      title: 'UI/UX Design Basics',
-      content: 'How to design user friendly apps',
-      status: ArticleStatus.DRAFT,
-      categoryName: 'FrontEnd',
-    },
-  ];
-
-  const commentsData = [
-    {
-      content: 'This was great introduction article to BackEnd',
-    },
-    {
-      content: 'I wish I found this resource earlier',
-    },
-    {
-      content: 'Great intro article to BackEnd',
-    },
-  ];
-
-  const tagsData = [
-    {
-      name: 'backend',
-    },
-    {
-      name: 'api',
-    },
-    {
-      name: 'prisma',
-    },
-    {
-      name: 'database',
-    },
-    {
-      name: 'frontend',
-    },
-  ];
-
-  for (const user of usersData) {
-    const createdUser = await prisma.user.upsert({
-      where: { login: user.login },
-      update: {},
-      create: user,
-    });
-    console.log(`Seeded user: ${createdUser.login}`);
-  }
-
-  for (const category of categoriesData) {
-    const createdCategory = await prisma.category.upsert({
-      where: { name: category.name },
-      update: {},
-      create: category,
-    });
-    console.log(`Seeded category: ${createdCategory.name}`);
-  }
-
-  //get users & categories
-  const admin = await prisma.user.findUnique({
-    where: { login: 'admin' },
   });
 
+  const editor = await prisma.user.create({
+    data: {
+      login: 'editor',
+      password: 'editor123',
+      role: UserRole.EDITOR,
+    },
+  });
+
+  await prisma.category.createMany({
+    data: [
+      {
+        name: 'Backend',
+        description: 'Server-side development and APIs',
+      },
+      {
+        name: 'Frontend',
+        description: 'Client-side UI and browser apps',
+      },
+      {
+        name: 'DevOps',
+        description: 'Deployment, infrastructure, and CI/CD',
+      },
+    ],
+  });
+
+  await prisma.tag.createMany({
+    data: [
+      { name: 'nodejs' },
+      { name: 'nestjs' },
+      { name: 'typescript' },
+      { name: 'prisma' },
+      { name: 'docker' },
+    ],
+  });
+
+  const backendCategory = await prisma.category.findFirst({
+    where: { name: 'Backend' },
+  });
+
+  const frontendCategory = await prisma.category.findFirst({
+    where: { name: 'Frontend' },
+  });
+
+  const devopsCategory = await prisma.category.findFirst({
+    where: { name: 'DevOps' },
+  });
+
+  const articlesData = [
+    {
+      title: 'Getting Started with NestJS',
+      content: 'NestJS helps build scalable server-side applications.',
+      status: ArticleStatus.DRAFT,
+      authorId: admin.id,
+      categoryId: backendCategory?.id ?? null,
+      tags: ['nestjs', 'typescript'],
+    },
+    {
+      title: 'Using Prisma with PostgreSQL',
+      content: 'Prisma makes database access type-safe and convenient.',
+      status: ArticleStatus.PUBLISHED,
+      authorId: admin.id,
+      categoryId: backendCategory?.id ?? null,
+      tags: ['prisma', 'typescript'],
+    },
+    {
+      title: 'Docker Basics',
+      content: 'Docker helps package and run applications consistently.',
+      status: ArticleStatus.PUBLISHED,
+      authorId: editor.id,
+      categoryId: devopsCategory?.id ?? null,
+      tags: ['docker'],
+    },
+    {
+      title: 'Node.js Streams Overview',
+      content: 'Streams allow efficient processing of large data.',
+      status: ArticleStatus.ARCHIVED,
+      authorId: editor.id,
+      categoryId: backendCategory?.id ?? null,
+      tags: ['nodejs'],
+    },
+    {
+      title: 'Frontend and API Integration',
+      content: 'Connecting frontend apps to REST APIs cleanly.',
+      status: ArticleStatus.DRAFT,
+      authorId: admin.id,
+      categoryId: frontendCategory?.id ?? null,
+      tags: ['typescript', 'nodejs'],
+    },
+  ];
+
+  const createdArticles = [];
   for (const article of articlesData) {
-    const category = await prisma.category.findUnique({
-      where: { name: article.categoryName },
-    });
-    const articleCreated = await prisma.article.create({
+    const created = await prisma.article.create({
       data: {
         title: article.title,
         content: article.content,
         status: article.status,
-        authorId: admin!.id,
-        categoryId: category!.id,
+        authorId: article.authorId,
+        categoryId: article.categoryId,
+        tags: {
+          connect: article.tags.map((name) => ({ name })),
+        },
       },
     });
-    console.log(`Seeded article: ${articleCreated.title}`);
+
+    createdArticles.push(created);
   }
 
-  //get articleId
-  const foundArticle = await prisma.article.findFirst({
-    where: { title: 'Intro to Backend' },
+  await prisma.comment.createMany({
+    data: [
+      {
+        content: 'Great intro to NestJS',
+        articleId: createdArticles[0].id,
+        authorId: editor.id,
+      },
+      {
+        content: 'Prisma with Postgres is very productive',
+        articleId: createdArticles[1].id,
+        authorId: admin.id,
+      },
+      {
+        content: 'Docker is essential for deployment',
+        articleId: createdArticles[2].id,
+        authorId: null,
+      },
+    ],
   });
-
-  for (const comment of commentsData) {
-    const commentCreated = await prisma.comment.create({
-      data: {
-        ...comment,
-        authorId: admin!.id,
-        articleId: foundArticle!.id,
-      },
-    });
-    console.log(`Seeded comment: ${commentCreated.content}`);
-  }
-
-  for (const tag of tagsData) {
-    const tagCreated = await prisma.tag.upsert({
-      where: { name: tag.name },
-      update: {},
-      create: tag,
-    });
-    console.log(`Seeded tag: ${tagCreated.name}`);
-  }
-
-  //get all tags
-  // const allTags = await prisma.tag.findMany();
-
-  const updatedArticle = await prisma.article.update({
-    where: { id: foundArticle!.id },
-    data: {
-      tags: {
-        connect: [{ name: 'api' }, { name: 'prisma' }],
-      },
-    },
-  });
-  console.log('Updated article id:', updatedArticle.id);
 }
 
 main()
   .then(async () => {
     await prisma.$disconnect();
-    await pool.end();
   })
-  .catch(async (e) => {
-    console.error(e);
+  .catch(async (error) => {
+    console.error(error);
     await prisma.$disconnect();
-    await pool.end();
     process.exit(1);
   });

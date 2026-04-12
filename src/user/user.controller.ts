@@ -1,19 +1,18 @@
 import {
-  Controller,
-  Get,
-  Param,
-  Post,
   Body,
-  Put,
-  ParseUUIDPipe,
+  Controller,
   Delete,
+  Get,
   HttpCode,
-  HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UserWithoutPassword } from './user.interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { UserWithoutPassword } from './user.interfaces';
 
 @Controller('user')
 export class UserController {
@@ -45,7 +44,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(204)
   async deleteUser(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.userService.deleteUser(id);
   }

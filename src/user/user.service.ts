@@ -1,14 +1,15 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma, UserRole as PrismaUserRole } from '@prisma/client';
 
 import { UserWithoutPassword } from './user.interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { UserRole as PrismaUserRole } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -27,8 +28,14 @@ export class UserService {
   }
 
   async getUserById(id: string): Promise<UserWithoutPassword> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundException();
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
     return {
       id: user.id,
       login: user.login,
@@ -40,30 +47,51 @@ export class UserService {
 
   async createUser(dto: CreateUserDto): Promise<UserWithoutPassword> {
     const role = (dto.role ?? 'viewer').toUpperCase() as PrismaUserRole;
-    const user = await this.prisma.user.create({
-      data: {
-        login: dto.login,
-        password: dto.password,
-        role,
-      },
-    });
 
-    return {
-      id: user.id,
-      login: user.login,
-      role: user.role.toLowerCase() as UserWithoutPassword['role'],
-      createdAt: user.createdAt.getTime(),
-      updatedAt: user.updatedAt.getTime(),
-    };
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          login: dto.login,
+          password: dto.password,
+          role,
+        },
+      });
+
+      return {
+        id: user.id,
+        login: user.login,
+        role: user.role.toLowerCase() as UserWithoutPassword['role'],
+        createdAt: user.createdAt.getTime(),
+        updatedAt: user.updatedAt.getTime(),
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new BadRequestException('Login already exists');
+      }
+
+      throw error;
+    }
   }
 
   async updateUserPassword(
     id: string,
     dto: UpdatePasswordDto,
   ): Promise<UserWithoutPassword> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new NotFoundException();
-    if (dto.oldPassword !== user.password) throw new ForbiddenException();
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    if (dto.oldPassword !== user.password) {
+      throw new ForbiddenException();
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
@@ -83,6 +111,7 @@ export class UserService {
   async deleteUser(id: string): Promise<void> {
     const existingUser = await this.prisma.user.findUnique({
       where: { id },
+      select: { id: true },
     });
 
     if (!existingUser) {
