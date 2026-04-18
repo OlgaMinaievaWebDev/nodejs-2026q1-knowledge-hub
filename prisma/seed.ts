@@ -13,7 +13,7 @@ async function main() {
     data: {
       login: 'admin',
       password: 'admin123',
-      role: UserRole.ADMIN,
+      role: UserRole.admin,
     },
   });
 
@@ -21,7 +21,7 @@ async function main() {
     data: {
       login: 'editor',
       password: 'editor123',
-      role: UserRole.EDITOR,
+      role: UserRole.editor,
     },
   });
 

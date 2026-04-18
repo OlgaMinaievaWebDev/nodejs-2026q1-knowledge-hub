@@ -15,7 +15,7 @@ model User {
   id        String    @id @default(uuid())
   login     String    @unique
   password  String
-  role      UserRole  @default(VIEWER)
+  role      UserRole  @default(viewer)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   articles  Article[]
@@ -51,11 +51,11 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
 
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String?
+  author   User?   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   articleId String
-  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
 }
 
 model Tag {
@@ -65,9 +65,9 @@ model Tag {
 }
 
 enum UserRole {
-  ADMIN
-  EDITOR
-  VIEWER
+  admin
+  editor
+  viewer
 }
 
 enum ArticleStatus {

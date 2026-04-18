@@ -46,7 +46,7 @@ export class UserService {
   }
 
   async createUser(dto: CreateUserDto): Promise<UserWithoutPassword> {
-    const role = (dto.role ?? 'viewer').toUpperCase() as PrismaUserRole;
+    const role = dto.role ?? 'viewer';
 
     try {
       const user = await this.prisma.user.create({

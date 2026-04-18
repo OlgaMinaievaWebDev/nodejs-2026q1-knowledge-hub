@@ -15,6 +15,7 @@ import { Comment } from './comment.interfaces';
 import { GetCommentsQueryDto } from './dto/get-comment-query.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
+
 @Controller('comment')
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}

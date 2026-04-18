@@ -17,25 +17,35 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(dto: SignUpDto): Promise<{ message: string }> {
+  async signUp(
+    dto: SignUpDto,
+  ): Promise<{ id: string; login: string; role: string }> {
     const existingUser = await this.prisma.user.findUnique({
       where: { login: dto.login },
     });
+
     if (existingUser) {
-      throw new BadRequestException('User already exists');
+      return {
+        id: existingUser.id,
+        login: existingUser.login,
+        role: existingUser.role,
+      };
     }
 
-    const password = dto.password;
-    const saltRounds = 10;
-    const hashedPassword = await hash(password, saltRounds);
+    const hashedPassword = await hash(dto.password, 10);
 
-    await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         login: dto.login,
         password: hashedPassword,
       },
     });
-    return { message: 'User created' };
+
+    return {
+      id: user.id,
+      login: user.login,
+      role: user.role,
+    };
   }
 
   async login(
