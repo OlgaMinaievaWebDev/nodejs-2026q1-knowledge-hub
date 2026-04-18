@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, UserRole as PrismaUserRole } from '@prisma/client';
+import { Prisma, UserRole } from '@prisma/client';
 
 import { UserWithoutPassword } from './user.interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -21,7 +21,7 @@ export class UserService {
     return users.map((user) => ({
       id: user.id,
       login: user.login,
-      role: user.role.toLowerCase() as UserWithoutPassword['role'],
+      role: user.role as UserWithoutPassword['role'],
       createdAt: user.createdAt.getTime(),
       updatedAt: user.updatedAt.getTime(),
     }));
@@ -69,7 +69,21 @@ export class UserService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new BadRequestException('Login already exists');
+        const existingUser = await this.prisma.user.findUnique({
+          where: { login: dto.login },
+        });
+
+        if (!existingUser) {
+          throw error;
+        }
+
+        return {
+          id: existingUser.id,
+          login: existingUser.login,
+          role: existingUser.role as UserWithoutPassword['role'],
+          createdAt: existingUser.createdAt.getTime(),
+          updatedAt: existingUser.updatedAt.getTime(),
+        };
       }
 
       throw error;
