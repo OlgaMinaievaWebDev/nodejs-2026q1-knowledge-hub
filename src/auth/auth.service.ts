@@ -54,8 +54,8 @@ export class AuthService {
     };
     const accessToken = await this.jwtService.signAsync(payload);
     const refreshToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '7d',
-      secret: 'different-refresh-token-secret',
+      expiresIn: process.env.JWT_REFRESH_TTL,
+      secret: process.env.JWT_REFRESH_SECRET,
     });
     return { accessToken, refreshToken };
   }
@@ -66,7 +66,7 @@ export class AuthService {
     let payload: { userId: string; login: string; role: string };
     try {
       payload = await this.jwtService.verifyAsync(dto.refreshToken, {
-        secret: 'different-refresh-token-secret',
+        secret: process.env.JWT_REFRESH_SECRET,
       });
     } catch {
       throw new ForbiddenException('Invalid or expired refresh token');
@@ -74,8 +74,8 @@ export class AuthService {
 
     const accessToken = await this.jwtService.signAsync(payload);
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: 'different-refresh-token-secret',
-      expiresIn: '7d',
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: process.env.JWT_REFRESH_TTL,
     });
 
     return { accessToken, refreshToken };
