@@ -5,11 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, UserRole } from '@prisma/client';
-
+import * as bcrypt from 'bcryptjs';
 import { UserWithoutPassword } from './user.interfaces';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
@@ -52,7 +52,7 @@ export class UserService {
       const user = await this.prisma.user.create({
         data: {
           login: dto.login,
-          password: dto.password,
+          password: await bcrypt.hash(dto.password, 10),
           role,
         },
       });
