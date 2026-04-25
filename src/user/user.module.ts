@@ -11,4 +11,3 @@ import { AuthModule } from 'src/auth/auth.module';
   providers: [UserService],
 })
 export class UserModule {}
- 
