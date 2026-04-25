@@ -4,7 +4,7 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { SignUpDto } from './dto/signup.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { hash, compare } from 'bcryptjs';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';

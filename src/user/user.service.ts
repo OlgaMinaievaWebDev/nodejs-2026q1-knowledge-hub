@@ -102,14 +102,19 @@ export class UserService {
       throw new NotFoundException();
     }
 
-    if (dto.oldPassword !== user.password) {
+    const isOldPasswordValid = await bcrypt.compare(
+      dto.oldPassword,
+      user.password,
+    );
+
+    if (!isOldPasswordValid) {
       throw new ForbiddenException();
     }
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
-        password: dto.newPassword,
+        password: await bcrypt.hash(dto.newPassword, 10),
       },
     });
 
